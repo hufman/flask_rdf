@@ -11,3 +11,5 @@ API
  - `add_format` - registers a new (mimetype, serialize\_format) pair, in case you've added some extra rdflib plugins
  - `decide_format` - Given an Accept header, return a (mimetype, format) tuple to be used
  - `flask_rdf` - Decorator to handle returning an rdflib Graph object and formatting it for the client
+
+[![Build Status](https://travis-ci.org/hufman/flask_rdf.svg?branch=master)](https://travis-ci.org/hufman/flask_rdf)
