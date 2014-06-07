@@ -40,5 +40,5 @@ def flask_rdf(view):
 	@wraps(view)
 	def decorated(*args, **kwargs):
 		output = view(*args, **kwargs)
-		return flask_format_output(output, request.headers['Accept'])
+		return output_flask(output, request.headers['Accept'])
 	return decorated
