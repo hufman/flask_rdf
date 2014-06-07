@@ -29,6 +29,9 @@ class TestCases(unittest.TestCase):
 		(mimetype, format) = decide_format('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')
 		self.assertEqual('test/format', mimetype)
 		self.assertEqual('test', format)
+		(mimetype, format) = decide_format('')
+		self.assertEqual('application/rdf+xml', mimetype)
+		self.assertEqual('xml', format)
 
 	def test_format_simple(self):
 		turtle = graph().serialize(format='turtle')
@@ -58,8 +61,15 @@ class TestCases(unittest.TestCase):
 		self.assertEqual('12', response.headers['x-custom'])
 		self.assertEqual(203, response.status_code)
 
+	def test_empty_format_headers(self):
+		xml = graph().serialize(format='xml')
+		accepts = ''
+		response = output_flask(graph(), accepts)
+		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+
 	def test_text(self):
 		test_str = 'This is a test string'
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output_flask(test_str, accepts)
 		self.assertEqual(test_str, response.get_data())
+

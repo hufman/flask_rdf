@@ -5,7 +5,7 @@ import mimeparse
 formats = {
    'application/x-turtle': 'turtle',
    'text/turtle': 'turtle',
-   'application/rdf+xml': 'prettyxml',
+   'application/rdf+xml': 'xml',
    'application/trix': 'trix',
    'application/n-quads': 'nquads',
    'application/n-triples': 'nt',
@@ -40,4 +40,4 @@ def decide_format(accepts):
 	if mimetype:
 		return (mimetype, formats[mimetype])
 	else:
-		return ('application/rdf+xml', 'prettyxml')
+		return ('application/rdf+xml', 'xml')
