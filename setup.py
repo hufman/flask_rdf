@@ -8,7 +8,7 @@ except:
 
 requirements = open('requirements.txt').read().split('\n')
 test_requirements = open('requirements.test.txt').read().split('\n')
-long_description = open('README.md').read()
+long_description = open('README.rst').read()
 
 setup(name='flask_rdf',
       version='0.1.6',
