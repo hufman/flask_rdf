@@ -71,5 +71,17 @@ class TestCases(unittest.TestCase):
 		test_str = 'This is a test string'
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output_flask(test_str, accepts)
-		self.assertEqual(test_str, response.get_data())
+		self.assertEqual(test_str.encode('utf-8'), response.get_data())
 
+	def test_unicode(self):
+		mygraph = graph()
+		mygraph.add((BNode(), FOAF.name, Literal('\u2603')))
+		turtle = mygraph.serialize(format='turtle')
+		accepts = 'text/turtle'
+		response = output_flask(mygraph, accepts)
+		data = response.get_data()
+		datastr = data.decode('utf-8')
+		self.assertEqual(turtle, response.get_data())
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(200, response.status_code)
+		self.assertTrue('\u2603' in datastr)

@@ -14,14 +14,12 @@ def output_flask(output, accepts):
 
 	if hasattr(output, 'serialize'):	# single graph object
 		output = output.serialize(format=output_format)
-		output = output.encode('utf-8')
 		response = make_response(output)
 		response.headers['Content-Type'] = output_mimetype
 		return response
 	if hasattr(output, '__getitem__'):	# indexable tuple
 		if hasattr(output[0], 'serialize'):	# graph object
 			serialized = output[0].serialize(format=output_format)
-			serialized = serialized.encode('utf-8')
 			output = (serialized,) + output[1:]
 			response = make_response(output)
 			response.headers['Content-Type'] = output_mimetype
