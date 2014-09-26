@@ -6,8 +6,9 @@ try:
 except:
 	pass
 
-requirements = open('requirements.txt').read().split('\n')
-test_requirements = open('requirements.test.txt').read().split('\n')
+requirements = ['Flask', 'python-mimeparse==0.1.4']
+test_requirements = ['nose==1.3.3', 'rdflib']
+
 long_description = open('README.rst').read()
 
 setup(name='flask_rdf',
