@@ -12,7 +12,7 @@ test_requirements = ['nose==1.3.3', 'rdflib']
 long_description = open('README.rst').read()
 
 setup(name='flask_rdf',
-      version='0.1.6',
+      version='0.1.7',
       description='Flask decorator to output RDF using content negotiation',
       author='Walter Huf',
       author_email='hufman@gmail.com',
