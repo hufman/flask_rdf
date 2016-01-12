@@ -32,6 +32,7 @@ setup(name='flask_rdf',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
           'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: CGI Tools/Libraries',
           'Topic :: Software Development :: Libraries :: Python Modules'
      ],
