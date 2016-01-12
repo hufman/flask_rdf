@@ -15,28 +15,37 @@ formats = {
    'text/n3': 'n3',
    'text/rdf+n3': 'n3'
 }
-known_mimetypes = formats.keys()
+# the list of any mimetypes, unlocked if we have a context
+all_mimetypes = list(formats.keys())
+# the list of mimetypes that don't require a context
+ctxless_mimetypes = [m for m in all_mimetypes if 'n-quads' not in m]
 
 
-def add_format(mimetype, format):
+def add_format(mimetype, format, requires_context=False):
 	""" Registers a new format to be used in a graph's serialize call
 	    If you've installed an rdflib serializer plugin, use this
 	    to add it to the content negotiation system
+	    Set requires_context=True if this format requires a context-aware graph
 	"""
 	global formats
-	global known_mimetypes
 	formats[mimetype] = format
-	known_mimetypes = formats.keys()
+	if not requires_context:
+		ctxless_mimetypes.append(mimetype)
+	all_mimetypes.append(mimetype)
 
 
-def decide_format(accepts):
+def decide_format(accepts, context_aware = False):
 	""" Returns what (mimetype,format) the client wants to receive
 	    Parses the given Accept header and picks the best one that
 	    we know how to output
 	    Returns (mimetype, format)
 	    An unknown Accept will default to rdf+xml
+	    context_aware=True will allow nquad serialization
 	"""
-	mimetype = mimeparse.best_match(known_mimetypes, accepts)
+	if context_aware:
+		mimetype = mimeparse.best_match(all_mimetypes, accepts)
+	else:
+		mimetype = mimeparse.best_match(ctxless_mimetypes, accepts)
 	if mimetype:
 		return (mimetype, formats[mimetype])
 	else:

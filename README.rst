@@ -19,14 +19,18 @@ API
 -  ``add_format``
 
    Registers a new format to be recognized for content negotiation. It
-   accepts a (``mimetype``, ``serialize_format``) pair, and is used to add any
+   accepts arguments ``mimetype``, ``serialize_format``, and is used to add any
    custom rdflib serializer plugins to be used for the content
    negotiation.
+   A third argument, requires_context, will restrict this serializer to
+   only be used by graphs that are ``context_aware``
 
 -  ``decide_format``
 
    Given an Accept header, return a (``mimetype``, ``format``) tuple that would
    best satisfy the client's request.
+   A second argument, context_aware, may be used to allow formats
+   that require a ``context_aware`` graph
 
 -  ``flask_rdf``
 

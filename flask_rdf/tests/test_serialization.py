@@ -1,5 +1,5 @@
 import unittest
-from rdflib import BNode, Graph, Literal, URIRef
+from rdflib import BNode, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib.namespace import RDF, RDFS, FOAF, XSD
 from flask import Flask
 from flask_rdf import add_format, decide_format, output_flask
@@ -7,6 +7,16 @@ from flask_rdf import add_format, decide_format, output_flask
 
 def graph():
 	graph = Graph('IOMemory', BNode())
+	person = BNode()
+	graph.add((person, RDF.type, FOAF.Person))
+	graph.add((person, FOAF.age, Literal(15, datatype=XSD.integer)))
+	graph.add((person, FOAF.birthday, Literal('2002-01-04', datatype=XSD.date)))
+	return graph
+
+
+def ctx_graph():
+	context = URIRef('http://example.com/#root')
+	graph = ConjunctiveGraph('IOMemory', context)
 	person = BNode()
 	graph.add((person, RDF.type, FOAF.Person))
 	graph.add((person, FOAF.age, Literal(15, datatype=XSD.integer)))
@@ -25,10 +35,20 @@ class TestCases(unittest.TestCase):
 		(mimetype, format) = decide_format('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')
 		self.assertEqual('text/n3', mimetype)
 		self.assertEqual('n3', format)
+		# custom
 		add_format('test/format', 'test')
 		(mimetype, format) = decide_format('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')
 		self.assertEqual('test/format', mimetype)
 		self.assertEqual('test', format)
+		# custom with context
+		add_format('test/ctxformat', 'ctxtest', requires_context=True)
+		(mimetype, format) = decide_format('text/turtle;q=0.5, test/ctxformat;q=1.0, text/n3;q=0.9', context_aware=True)
+		self.assertEqual('test/ctxformat', mimetype)
+		self.assertEqual('ctxtest', format)
+		(mimetype, format) = decide_format('text/turtle;q=0.5, test/ctxformat;q=1.0, text/n3;q=0.9', context_aware=False)
+		self.assertEqual('text/n3', mimetype)
+		self.assertEqual('n3', format)
+		# default
 		(mimetype, format) = decide_format('')
 		self.assertEqual('application/rdf+xml', mimetype)
 		self.assertEqual('xml', format)
@@ -48,6 +68,56 @@ class TestCases(unittest.TestCase):
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output_flask(output, accepts)
 		self.assertEqual(turtle, response.get_data())
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(202, response.status_code)
+
+	def test_format_quads_nocontext(self):
+		g = graph()
+		self.assertFalse(g.context_aware)
+		self.assertRaises(Exception,
+			g.serialize, format='nquads')
+
+	def test_format_quads_context(self):
+		g = ctx_graph()
+		self.assertTrue(g.context_aware)
+		quads = g.serialize(format='nquads')
+		output = (g, 202)
+		accepts = 'application/n-quads;q=0.9'
+		response = output_flask(output, accepts)
+		self.assertEqual(quads, response.get_data())
+		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual(202, response.status_code)
+
+	def test_format_quads_lowprio(self):
+		""" Test that quads are not used even if possible """
+		g = ctx_graph()
+		quads = g.serialize(format='turtle')
+		output = (g, 202)
+		accepts = 'text/turtle;q=0.9, application/n-quads;q=0.4'
+		response = output_flask(output, accepts)
+		self.assertEqual(quads, response.get_data())
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(202, response.status_code)
+
+	def test_format_quads_highprio(self):
+		""" Test that quads are used with alternative """
+		g = ctx_graph()
+		quads = g.serialize(format='nquads')
+		output = (g, 202)
+		accepts = 'text/turtle;q=0.4, application/n-quads;q=0.9'
+		response = output_flask(output, accepts)
+		self.assertEqual(quads, response.get_data())
+		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual(202, response.status_code)
+
+	def test_format_quads_unavailable(self):
+		""" Test that quads are not used with contextless store """
+		g = graph()
+		quads = g.serialize(format='turtle')
+		output = (g, 202)
+		accepts = 'text/turtle;q=0.4, application/n-quads;q=0.9'
+		response = output_flask(output, accepts)
+		self.assertEqual(quads, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(202, response.status_code)
 
