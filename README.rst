@@ -16,7 +16,7 @@ method to register a new mimetype request to use the new formatter.
 API
 ---
 
--  ``add_format``
+-  ``add_format``, ``format.add_format``
 
    Registers a new format to be recognized for content negotiation. It
    accepts arguments ``mimetype``, ``serialize_format``, and is used to add any
@@ -25,7 +25,7 @@ API
    A third argument, requires_context, will restrict this serializer to
    only be used by graphs that are ``context_aware``
 
--  ``decide_format``
+-  ``format.decide``
 
    Given an Accept header, return a (``mimetype``, ``format``) tuple that would
    best satisfy the client's request.
@@ -33,6 +33,12 @@ API
    If the Accept header can't be satisfied, returns (None, None)
    A second argument, context_aware, may be used to allow formats
    that require a ``context_aware`` graph
+
+- ``FormatSelector``
+
+   Class to decide serialization formats. It supports using the module-level
+   formats added with ``format.add_format``, but it has its own list of
+   formats added with ``FormatSelector().add_format``.
 
 -  ``flask_rdf``
 

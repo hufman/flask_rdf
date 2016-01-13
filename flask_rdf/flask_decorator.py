@@ -1,4 +1,4 @@
-from .format import decide_format
+from .format import decide
 from flask import request, make_response
 
 
@@ -33,7 +33,7 @@ def output_flask(output, accepts):
 	graph = _get_graph(output)
 	if graph is not None:
 		# decide the format
-		output_mimetype, output_format = decide_format(accepts, graph.context_aware)
+		output_mimetype, output_format = decide(accepts, graph.context_aware)
 		# requested content couldn't find anything
 		if output_mimetype is None:
 			return '406 Not Acceptable', 406
