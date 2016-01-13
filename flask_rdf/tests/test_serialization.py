@@ -31,27 +31,6 @@ class TestCases(unittest.TestCase):
 		self.context.__enter__()
 	def tearDown(self):
 		self.context.__exit__(None, None, None)
-	def test_accepts(self):
-		(mimetype, format) = decide_format('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')
-		self.assertEqual('text/n3', mimetype)
-		self.assertEqual('n3', format)
-		# custom
-		add_format('test/format', 'test')
-		(mimetype, format) = decide_format('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')
-		self.assertEqual('test/format', mimetype)
-		self.assertEqual('test', format)
-		# custom with context
-		add_format('test/ctxformat', 'ctxtest', requires_context=True)
-		(mimetype, format) = decide_format('text/turtle;q=0.5, test/ctxformat;q=1.0, text/n3;q=0.9', context_aware=True)
-		self.assertEqual('test/ctxformat', mimetype)
-		self.assertEqual('ctxtest', format)
-		(mimetype, format) = decide_format('text/turtle;q=0.5, test/ctxformat;q=1.0, text/n3;q=0.9', context_aware=False)
-		self.assertEqual('text/n3', mimetype)
-		self.assertEqual('n3', format)
-		# default
-		(mimetype, format) = decide_format('')
-		self.assertEqual('application/rdf+xml', mimetype)
-		self.assertEqual('xml', format)
 
 	def test_format_simple(self):
 		turtle = graph().serialize(format='turtle')

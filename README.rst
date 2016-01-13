@@ -29,6 +29,8 @@ API
 
    Given an Accept header, return a (``mimetype``, ``format``) tuple that would
    best satisfy the client's request.
+   If the Accept header is blank, default to RDF+XML
+   If the Accept header can't be satisfied, returns (None, None)
    A second argument, context_aware, may be used to allow formats
    that require a ``context_aware`` graph
 

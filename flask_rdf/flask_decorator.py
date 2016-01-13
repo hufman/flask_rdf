@@ -34,6 +34,10 @@ def output_flask(output, accepts):
 	if graph is not None:
 		# decide the format
 		output_mimetype, output_format = decide_format(accepts, graph.context_aware)
+		# requested content couldn't find anything
+		if output_mimetype is None:
+			return '406 Not Acceptable', 406
+		# explicitly mark text mimetypes as utf-8
 		if 'text' in output_mimetype:
 			output_mimetype = output_mimetype + '; charset=utf-8'
 

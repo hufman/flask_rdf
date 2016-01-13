@@ -1,6 +1,10 @@
 import mimeparse
 
 
+DEFAULT_MIMETYPE = 'application/rdf+xml'
+WILDCARD = 'INVALID/MATCH'
+
+
 # What formats we support for serialization
 formats = {
    'application/x-turtle': 'turtle',
@@ -39,14 +43,24 @@ def decide_format(accepts, context_aware = False):
 	    Parses the given Accept header and picks the best one that
 	    we know how to output
 	    Returns (mimetype, format)
-	    An unknown Accept will default to rdf+xml
+	    An empty Accept will default to rdf+xml
+	    An Accept with */* use rdf+xml unless a better match is found
+	    An Accept that doesn't match anything will return (None,None)
 	    context_aware=True will allow nquad serialization
 	"""
+	# If the client didn't request a thing, default to xml
+	if accepts is None or accepts.strip() == '':
+		mimetype = DEFAULT_MIMETYPE
+		return (mimetype, formats[mimetype])
+
 	if context_aware:
-		mimetype = mimeparse.best_match(all_mimetypes, accepts)
+		mimetype = mimeparse.best_match(all_mimetypes + [WILDCARD], accepts)
 	else:
-		mimetype = mimeparse.best_match(ctxless_mimetypes, accepts)
+		mimetype = mimeparse.best_match(ctxless_mimetypes + [WILDCARD], accepts)
 	if mimetype:
+		if mimetype == WILDCARD:	# browser default
+			mimetype = DEFAULT_MIMETYPE
 		return (mimetype, formats[mimetype])
 	else:
-		return ('application/rdf+xml', 'xml')
+		# couldn't find a matching mimetype for the Accepts header
+		return (None, None)
