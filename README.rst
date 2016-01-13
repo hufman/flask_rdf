@@ -47,6 +47,13 @@ API
    Flask response, depending on the content negotiation. Other content
    is returned without modification.
 
+-  ``Decorator``
+
+   Class to act as the decorator, in case some behavior needs to be overridden.
+   The constructor accepts a FormatSelector object to do custom negotiation.
+   The Decorator object itself can be used as the decorator, and it also
+   supports the methods ``.output`` and ``.decorate``.
+
 Example
 -------
 

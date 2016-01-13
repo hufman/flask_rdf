@@ -2,7 +2,7 @@ import unittest
 from rdflib import BNode, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib.namespace import RDF, RDFS, FOAF, XSD
 from flask import Flask
-from flask_rdf import output_flask
+from flask_rdf import output_flask, Decorator
 
 
 def graph():
@@ -134,3 +134,12 @@ class TestCases(unittest.TestCase):
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_code)
 		self.assertTrue('\u2603' in datastr)
+
+	def test_decorators(self):
+		turtle = graph().serialize(format='turtle')
+		output = graph()
+		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
+		decorator = Decorator()
+		response = decorator.output(output, accepts)
+		self.assertEqual(turtle, response.get_data())
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
