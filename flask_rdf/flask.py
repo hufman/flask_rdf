@@ -69,7 +69,7 @@ class Decorator(object):
 		@wraps(view)
 		def decorated(*args, **kwargs):
 			output = view(*args, **kwargs)
-			return self.output_flask(output, request.headers.get('Accept', ''))
+			return self.output(output, request.headers.get('Accept', ''))
 		return decorated
 
 	def __call__(self, view):

@@ -1,40 +1,71 @@
 import unittest
+import webtest
 from rdflib import BNode, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib.namespace import RDF, RDFS, FOAF, XSD
-from flask import Flask
-from flask_rdf.flask import output, Decorator
+import flask
+from flask_rdf.flask import output, Decorator, returns_rdf
 
 
-def graph():
+def make_graph():
 	graph = Graph('IOMemory', BNode())
-	person = BNode()
+	person = URIRef('http://example.com/#person')
 	graph.add((person, RDF.type, FOAF.Person))
 	graph.add((person, FOAF.age, Literal(15, datatype=XSD.integer)))
 	graph.add((person, FOAF.birthday, Literal('2002-01-04', datatype=XSD.date)))
 	return graph
+graph = make_graph()
 
-
-def ctx_graph():
+def make_ctx_graph():
 	context = URIRef('http://example.com/#root')
 	graph = ConjunctiveGraph('IOMemory', context)
-	person = BNode()
+	person = URIRef('http://example.com/#person')
 	graph.add((person, RDF.type, FOAF.Person))
 	graph.add((person, FOAF.age, Literal(15, datatype=XSD.integer)))
 	graph.add((person, FOAF.birthday, Literal('2002-01-04', datatype=XSD.date)))
 	return graph
+ctx_graph = make_ctx_graph()
+
+def make_unicode_graph():
+	mygraph = make_graph()
+	mygraph.add((BNode(), FOAF.name, Literal('\u2603')))
+	return mygraph
+unicode_graph = make_unicode_graph()
 
 
-class TestCases(unittest.TestCase):
+application = flask.Flask(__name__)
+@application.route('/test')
+@returns_rdf
+def ctxless():
+	return graph
+@application.route('/ctx')
+@returns_rdf
+def ctx():
+	return ctx_graph
+@application.route('/text')
+@returns_rdf
+def text():
+	return 'This is a test string'
+@application.route('/unicode')
+@returns_rdf
+def unicode():
+	return unicode_graph
+@application.route('/202')
+@returns_rdf
+def custom():
+	return graph, 202, {'CustomHeader':'yes'}
+app = webtest.TestApp(application)
+
+
+class TestFlaskInternally(unittest.TestCase):
 	def setUp(self):
-		self.app = Flask(__name__)
-		self.context = self.app.test_request_context('/test')
+		self.context = application.test_request_context('/testurl')
 		self.context.__enter__()
 	def tearDown(self):
 		self.context.__exit__(None, None, None)
 
 	def test_format_simple(self):
-		turtle = graph().serialize(format='turtle')
-		view = graph()
+		turtle = graph.serialize(format='turtle')
+		view = graph
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
@@ -42,8 +73,8 @@ class TestCases(unittest.TestCase):
 		self.assertEqual(200, response.status_code)
 
 	def test_format_tuple(self):
-		turtle = graph().serialize(format='turtle')
-		view = (graph(), 202)
+		turtle = graph.serialize(format='turtle')
+		view = (graph, 202)
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
@@ -51,13 +82,13 @@ class TestCases(unittest.TestCase):
 		self.assertEqual(202, response.status_code)
 
 	def test_format_quads_nocontext(self):
-		g = graph()
+		g = graph
 		self.assertFalse(g.context_aware)
 		self.assertRaises(Exception,
 			g.serialize, format='nquads')
 
 	def test_format_quads_context(self):
-		g = ctx_graph()
+		g = ctx_graph
 		self.assertTrue(g.context_aware)
 		quads = g.serialize(format='nquads')
 		view = (g, 202)
@@ -69,7 +100,7 @@ class TestCases(unittest.TestCase):
 
 	def test_format_quads_lowprio(self):
 		""" Test that quads are not used even if possible """
-		g = ctx_graph()
+		g = ctx_graph
 		quads = g.serialize(format='turtle')
 		view = (g, 202)
 		accepts = 'text/turtle;q=0.9, application/n-quads;q=0.4'
@@ -80,7 +111,7 @@ class TestCases(unittest.TestCase):
 
 	def test_format_quads_highprio(self):
 		""" Test that quads are used with alternative """
-		g = ctx_graph()
+		g = ctx_graph
 		quads = g.serialize(format='nquads')
 		view = (g, 202)
 		accepts = 'text/turtle;q=0.4, application/n-quads;q=0.9'
@@ -91,7 +122,7 @@ class TestCases(unittest.TestCase):
 
 	def test_format_quads_unavailable(self):
 		""" Test that quads are not used with contextless store """
-		g = graph()
+		g = graph
 		quads = g.serialize(format='turtle')
 		view = (g, 202)
 		accepts = 'text/turtle;q=0.4, application/n-quads;q=0.9'
@@ -101,8 +132,8 @@ class TestCases(unittest.TestCase):
 		self.assertEqual(202, response.status_code)
 
 	def test_format_headers(self):
-		turtle = graph().serialize(format='turtle')
-		view = (graph(), 203, {'x-custom':'12'})
+		turtle = graph.serialize(format='turtle')
+		view = (graph, 203, {'x-custom':'12'})
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
@@ -111,9 +142,9 @@ class TestCases(unittest.TestCase):
 		self.assertEqual(203, response.status_code)
 
 	def test_empty_format_headers(self):
-		xml = graph().serialize(format='xml')
+		xml = graph.serialize(format='xml')
 		accepts = ''
-		response = output(graph(), accepts)
+		response = output(graph, accepts)
 		self.assertEqual('application/rdf+xml', response.headers['content-type'])
 
 	def test_text(self):
@@ -123,7 +154,7 @@ class TestCases(unittest.TestCase):
 		self.assertEqual(test_str.encode('utf-8'), response.get_data())
 
 	def test_unicode(self):
-		mygraph = graph()
+		mygraph = graph
 		mygraph.add((BNode(), FOAF.name, Literal('\u2603')))
 		turtle = mygraph.serialize(format='turtle')
 		accepts = 'text/turtle'
@@ -136,10 +167,91 @@ class TestCases(unittest.TestCase):
 		self.assertTrue('\u2603' in datastr)
 
 	def test_decorators(self):
-		turtle = graph().serialize(format='turtle')
-		view = graph()
+		turtle = graph.serialize(format='turtle')
+		view = graph
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		decorator = Decorator()
 		response = decorator.output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+
+
+class TestFlaskApp(unittest.TestCase):
+	def test_format_simple(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
+		response = app.get('/test', headers=headers)
+		self.assertEqual(turtle, response.body)
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+
+	def test_format_quads_context(self):
+		g = ctx_graph
+		self.assertTrue(g.context_aware)
+		quads = g.serialize(format='nquads')
+		headers = {'Accept': 'application/n-quads;q=0.9'}
+		response = app.get('/ctx', headers=headers)
+		self.assertEqual(quads, response.body)
+		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+
+	def test_format_quads_lowprio(self):
+		""" Test that quads are not used even if possible """
+		g = ctx_graph
+		quads = g.serialize(format='turtle')
+		headers = {'Accept': 'text/turtle;q=0.9, application/n-quads;q=0.4'}
+		response = app.get('/ctx', headers=headers)
+		self.assertEqual(quads, response.body)
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+
+	def test_format_quads_highprio(self):
+		""" Test that quads are used with alternative """
+		g = ctx_graph
+		quads = g.serialize(format='nquads')
+		headers = {'Accept': 'text/turtle;q=0.4, application/n-quads;q=0.9'}
+		response = app.get('/ctx', headers=headers)
+		self.assertEqual(quads, response.body)
+		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+
+	def test_format_quads_unavailable(self):
+		""" Test that quads are not used with contextless store """
+		g = graph
+		quads = g.serialize(format='turtle')
+		headers = {'Accept': 'text/turtle;q=0.4, application/n-quads;q=0.9'}
+		response = app.get('/test', headers=headers)
+		self.assertEqual(quads, response.body)
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+
+	def test_empty_format_headers(self):
+		xml = graph.serialize(format='xml')
+		headers = {'Accept': ''}
+		response = app.get('/test', headers=headers)
+		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+
+	def test_text(self):
+		test_str = 'This is a test string'
+		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
+		response = app.get('/text', headers=headers)
+		self.assertEqual(test_str.encode('utf-8'), response.body)
+
+	def test_unicode(self):
+		mygraph = unicode_graph
+		turtle = mygraph.serialize(format='turtle')
+		headers = {'Accept': 'text/turtle'}
+		response = app.get('/unicode', headers=headers)
+		self.assertEqual(turtle, response.body)
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+		self.assertTrue('\u2603' in response.body.decode('utf-8'))
+
+	def test_custom_response(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/turtle'}
+		response = app.get('/202', headers=headers)
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('yes', response.headers['CustomHeader'])
+		self.assertEqual(202, response.status_int)
+		self.assertEqual(turtle, response.body)

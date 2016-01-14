@@ -35,7 +35,7 @@ unicode_graph = make_unicode_graph()
 application = bottle.Bottle()
 @application.route('/test')
 @returns_rdf
-def test():
+def ctxless():
 	return graph
 @application.route('/ctx')
 @returns_rdf
