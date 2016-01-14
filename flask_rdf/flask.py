@@ -1,5 +1,5 @@
+from __future__ import absolute_import
 from .format import decide, FormatSelector
-import flask
 
 
 class Decorator(object):
@@ -80,7 +80,7 @@ class Decorator(object):
 _implicit_instance = Decorator()
 
 
-def output_flask(output, accepts):
+def output(output, accepts):
 	return _implicit_instance.output(output, accepts)
-def flask_rdf(view):
+def returns_rdf(view):
 	return _implicit_instance.decorate(view)

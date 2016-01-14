@@ -40,14 +40,14 @@ API
    formats added with ``format.add_format``, but it has its own list of
    formats added with ``FormatSelector().add_format``.
 
--  ``flask_rdf``
+-  ``flask_rdf``, ``flask.returns_rdf``
 
    Decorator for a Flask view function to use the Flask request's Accept
    header. It handles converting an rdflib Graph object to the proper
    Flask response, depending on the content negotiation. Other content
    is returned without modification.
 
--  ``Decorator``
+-  ``flask.Decorator``
 
    Class to act as the decorator, in case some behavior needs to be overridden.
    The constructor accepts a FormatSelector object to do custom negotiation.
@@ -63,14 +63,14 @@ Example
     from rdflib import Graph, BNode, Literal, URIRef
     from rdflib.namespace import FOAF
     from flask import Flask
-    from flask_rdf import flask_rdf
+    from flask_rdf.flask import returns_rdf
     import random
 
     app = Flask(__name__)
 
     @app.route('/')
     @app.route('/<path:path>')
-    @flask_rdf
+    @returns_rdf
     def random_age(path=''):
         graph = Graph('IOMemory', BNode())
         graph.add((URIRef(path), FOAF.age, Literal(random.randint(20, 50))))

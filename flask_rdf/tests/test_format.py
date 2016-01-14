@@ -1,9 +1,8 @@
 import unittest
 from rdflib import BNode, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib.namespace import RDF, RDFS, FOAF, XSD
-from flask import Flask
-from flask_rdf import add_format, FormatSelector, output_flask
-from flask_rdf.format import decide
+from flask_rdf.flask import output
+from flask_rdf.format import add_format, decide, FormatSelector
 
 
 class TestFormat(unittest.TestCase):
