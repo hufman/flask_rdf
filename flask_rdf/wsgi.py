@@ -1,5 +1,12 @@
 from __future__ import absolute_import
 from .format import decide, FormatSelector
+try:
+	from io import BytesIO as StringIO
+except:		# python 2
+	try:
+		from cStringIO import StringIO
+	except:
+		from StringIO import StringIO
 
 
 class Decorator(object):
@@ -52,11 +59,13 @@ class Decorator(object):
 			app_response = {}
 			app_response['status'] = "200 OK"
 			app_response['headers'] = []
+			app_response['written'] = StringIO()
 			def custom_start_response(status, headers, *args, **kwargs):
 				app_response['status'] = status
 				app_response['headers'] = headers
 				app_response['args'] = args
 				app_response['kwargs'] = kwargs
+				return app_response['written'].write
 			returned = app(environ, custom_start_response)
 
 			# callbacks from the serialization
@@ -65,10 +74,18 @@ class Decorator(object):
 			def set_content_type(content_type):
 				app_response['headers'] = [(h,v) for (h,v) in app_response['headers'] if h.lower() != 'content-type']
 				app_response['headers'].append(('Content-Type', content_type))
+			# do the serialization
 			accept = environ['HTTP_ACCEPT']
 			new_return = self.output(returned, accept, set_http_code, set_content_type)
 
-			start_response(app_response['status'], app_response['headers'], *app_response.get('args', []), **app_response.get('kwargs', {}))
+			# pass on the result to the parent WSGI server
+			parent_writer = start_response(app_response['status'],
+			                               app_response['headers'],
+			                               *app_response.get('args', []),
+			                               **app_response.get('kwargs', {}))
+			written = app_response['written'].getvalue()
+			if len(written) > 0:
+				parent_writer(written)
 			return new_return
 		return decorated
 

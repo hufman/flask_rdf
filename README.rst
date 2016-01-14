@@ -86,6 +86,9 @@ API
    header. It handles converting an rdflib Graph object to the proper
    Bottle response, depending on the content negotiation. Other content
    is returned without modification.
+   Calls to WSGI's ``start_response`` will pass data through unchanged. Doing
+   both a ``start_response`` and returning an RDF object will result in both
+   outputs being returned, so don't do that.
 
 -  ``wsgi.Decorator``
 

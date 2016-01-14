@@ -42,6 +42,10 @@ def application(environ, start_response):
 		return unicode_graph
 	if path == '/text':
 		return ['This is a test string'.encode('utf-8')]
+	if path == '/sneaky':
+		write = start_response('200 OK', [])
+		write('Sneaky'.encode('utf-8'))
+		return ['Step2'.encode('utf-8')]
 	if path == '/202':
 		start_response('202 Custom', [('CustomHeader','yes')])
 		return graph
@@ -106,6 +110,13 @@ class TestCases(unittest.TestCase):
 		test_str = 'This is a test string'
 		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
 		response = app.get('/text', headers=headers)
+		self.assertEqual(test_str.encode('utf-8'), response.body)
+
+	def test_sneaky(self):
+		""" Test WSGI apps that use start_response().write() """
+		test_str = 'SneakyStep2'
+		headers = {'Accept': 'text/plain;q=0.5'}
+		response = app.get('/sneaky', headers=headers)
 		self.assertEqual(test_str.encode('utf-8'), response.body)
 
 	def test_unicode(self):
