@@ -91,3 +91,11 @@ class TestFormat(unittest.TestCase):
 		(mimetype, format) = self.format.decide('application/n-quads;q=0.9', context_aware=False)
 		self.assertEqual(None, mimetype)
 		self.assertEqual(None, format)
+
+	def test_wants_rdf(self):
+		self.assertTrue(self.format.wants_rdf('text/turtle'))
+		self.assertTrue(self.format.wants_rdf('application/rdf+xml'))
+		self.assertTrue(self.format.wants_rdf('text/html, application/rdf+xml'))
+		self.assertFalse(self.format.wants_rdf('text/html'))
+		self.assertFalse(self.format.wants_rdf('text/html, */*;q=0.2'))
+		self.assertFalse(self.format.wants_rdf('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'))

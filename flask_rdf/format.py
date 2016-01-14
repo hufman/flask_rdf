@@ -25,7 +25,6 @@ all_mimetypes = list(formats.keys())
 ctxless_mimetypes = [m for m in all_mimetypes if 'n-quads' not in m]
 
 
-
 class FormatSelector(object):
 	def __init__(self):
 		# any extra formats that we support
@@ -110,6 +109,13 @@ class FormatSelector(object):
 			# couldn't find a matching mimetype for the Accepts header
 			return (None, None)
 
+	def wants_rdf(self, accepts):
+		""" Returns whether this client's Accept header indicates
+		    that the client wants to receive RDF
+		"""
+		mimetype = mimeparse.best_match(all_mimetypes + self.all_mimetypes + [WILDCARD], accepts)
+		return mimetype and mimetype != WILDCARD
+
 
 _implicit_instance = FormatSelector()
 
@@ -128,5 +134,11 @@ def add_format(mimetype, format, requires_context=False):
 		ctxless_mimetypes.append(mimetype)
 	all_mimetypes.append(mimetype)
 
-def decide(mimetype, context_aware=False):
-	return _implicit_instance.decide(mimetype, context_aware)
+def decide(accepts, context_aware=False):
+	return _implicit_instance.decide(accepts, context_aware)
+
+def wants_rdf(accepts):
+	""" Returns whether this client's Accept header indicates
+	    that the client wants to receive RDF
+	"""
+	return _implicit_instance.wants_rdf(accepts)

@@ -14,9 +14,10 @@ serializer with rdflib's plugin support, use the ``add_format``
 method to register a new mimetype request to use the new formatter.
 
 The functionality of this module can still help other web frameworks, even
-if there isn't a decorator for it. The ``format.decide`` function will
-return information about what ``Content-Type`` header to send and what
-serialization format to use with rdflib.
+if there isn't a specific decorator yet. The ``format.decide`` function will
+return information about with ``Content-Type`` header to send and what
+serialization format to use with rdflib. The ``format.wants_rdf`` function
+can be used at a high level to determine whether the client even wants RDF.
 
 API
 ---
@@ -28,7 +29,7 @@ API
    custom rdflib serializer plugins to be used for the content
    negotiation.
    A third argument, requires_context, will restrict this serializer to
-   only be used by graphs that are ``context_aware``
+   only be used by graphs that are ``context_aware``.
 
 -  ``format.decide``
 
@@ -37,13 +38,19 @@ API
    If the Accept header is blank, default to RDF+XML
    If the Accept header can't be satisfied, returns (None, None)
    A second argument, context_aware, may be used to allow formats
-   that require a ``context_aware`` graph
+   that require a ``context_aware`` graph.
 
-- ``FormatSelector``
+- ``FormatSelector``, ``format.FormatSelector``
 
    Class to decide serialization formats. It supports using the module-level
    formats added with ``format.add_format``, but it has its own list of
    formats added with ``FormatSelector().add_format``.
+
+- ``wants_rdf``, ``format.wants_rdf``, ``FormatSelector.wants_rdf``
+
+   Returns whether the client's Accept header indicates that the client
+   is prepared to receive RDF data. This can be used in the view to
+   return a pretty HTML page for browsers, for example.
 
 -  ``flask_rdf``, ``flask.returns_rdf``
 
