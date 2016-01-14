@@ -10,8 +10,13 @@ header says.  If the view function returns something besides an rdflib graph,
 it will be passed through without modification.
 
 Custom formats can be registered easily. After registering the new
-serializer with rdflib's plugin support, use the ``decide_format``
+serializer with rdflib's plugin support, use the ``add_format``
 method to register a new mimetype request to use the new formatter.
+
+The functionality of this module can still help other web frameworks, even
+if there isn't a decorator for it. The ``format.decide`` function will
+return information about what ``Content-Type`` header to send and what
+serialization format to use with rdflib.
 
 API
 ---
