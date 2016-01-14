@@ -62,7 +62,7 @@ class TestCases(unittest.TestCase):
 		turtle = graph.serialize(format='turtle')
 		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
 		response = app.get('/test', headers=headers)
-		self.assertEqual(turtle, response.text)
+		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
 
@@ -82,7 +82,7 @@ class TestCases(unittest.TestCase):
 		quads = g.serialize(format='turtle')
 		headers = {'Accept': 'text/turtle;q=0.9, application/n-quads;q=0.4'}
 		response = app.get('/ctx', headers=headers)
-		self.assertEqual(quads, response.text)
+		self.assertEqual(quads, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
 
@@ -102,7 +102,7 @@ class TestCases(unittest.TestCase):
 		quads = g.serialize(format='turtle')
 		headers = {'Accept': 'text/turtle;q=0.4, application/n-quads;q=0.9'}
 		response = app.get('/test', headers=headers)
-		self.assertEqual(quads, response.text)
+		self.assertEqual(quads, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
 
@@ -116,27 +116,23 @@ class TestCases(unittest.TestCase):
 		test_str = 'This is a test string'
 		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
 		response = app.get('/text', headers=headers)
-		self.assertEqual(test_str.encode('utf-8'), response.text)
+		self.assertEqual(test_str.encode('utf-8'), response.body)
 
 	def test_unicode(self):
 		mygraph = unicode_graph
 		turtle = mygraph.serialize(format='turtle')
 		headers = {'Accept': 'text/turtle'}
 		response = app.get('/unicode', headers=headers)
-		data = response.body
-		datastr = data.decode('utf-8')
-		self.assertEqual(turtle, datastr)
+		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
-		self.assertTrue('\u2603' in datastr)
+		self.assertTrue('\u2603' in response.body.decode('utf-8'))
 
 	def test_custom_response(self):
 		turtle = graph.serialize(format='turtle')
 		headers = {'Accept': 'text/turtle'}
 		response = app.get('/202', headers=headers)
-		data = response.body
-		datastr = data.decode('utf-8')
-		self.assertEqual(turtle, datastr)
+		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual('yes', response.headers['CustomHeader'])
 		self.assertEqual(202, response.status_int)
