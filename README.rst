@@ -1,13 +1,13 @@
 Flask_rdf
 ==========
 
-A Flask or Bottle decorator to output RDF using content negotiation.
+A Flask or Bottle or WSGI decorator to output RDF using content negotiation.
 
-Apply the ``@flask_rdf`` or ``@bottle_rdf`` decorator to a view function
-and return an rdflib Graph object. Flask_rdf will automatically format it
-into an RDF output format, depending on what the request's Accept header says.
-If the view function returns something besides an rdflib graph, it will be
-passed through without modification.
+Apply the ``@flask_rdf`` or ``@bottle_rdf`` or ``@wsgi_rdf`` decorator to
+a view function and return an rdflib Graph object. Flask_rdf will automatically
+format it into an RDF output format, depending on what the request's Accept
+header says.  If the view function returns something besides an rdflib graph,
+it will be passed through without modification.
 
 Custom formats can be registered easily. After registering the new
 serializer with rdflib's plugin support, use the ``decide_format``
@@ -62,6 +62,20 @@ API
    is returned without modification.
 
 -  ``bottle.Decorator``
+
+   Class to act as the decorator, in case some behavior needs to be overridden.
+   The constructor accepts a FormatSelector object to do custom negotiation.
+   The Decorator object itself can be used as the decorator, and it also
+   supports the methods ``.output`` and ``.decorate``.
+
+-  ``wsgi_rdf``, ``wsgi.returns_rdf``
+
+   Decorator for a WSGI app function to use the WSGI request's Accept
+   header. It handles converting an rdflib Graph object to the proper
+   Bottle response, depending on the content negotiation. Other content
+   is returned without modification.
+
+-  ``wsgi.Decorator``
 
    Class to act as the decorator, in case some behavior needs to be overridden.
    The constructor accepts a FormatSelector object to do custom negotiation.
