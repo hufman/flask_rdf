@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from .format import decide, FormatSelector
+from rdflib.graph import Graph
 
 
 class Decorator(object):
@@ -9,14 +10,18 @@ class Decorator(object):
 			self.format_selector = FormatSelector()
 
 	@staticmethod
+	def _is_graph(obj):
+		return isinstance(obj, Graph)
+
+	@staticmethod
 	def _get_graph(output):
 		""" Given a Flask response, find the rdflib Graph """
-		if hasattr(output, 'serialize'):	# single graph object
+		if Decorator._is_graph(output):	# single graph object
 			return output
 
 		if hasattr(output, '__getitem__'):	# indexable tuple
 			if len(output) > 0 and \
-			   hasattr(output[0], 'serialize'):	# graph object
+			   Decorator._is_graph(output[0]):	# graph object
 				return output[0]
 
 	@staticmethod

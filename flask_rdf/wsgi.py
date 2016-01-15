@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from .format import decide, FormatSelector
+from rdflib.graph import Graph
 try:
 	from io import BytesIO as StringIO
 except:		# python 2
@@ -16,9 +17,13 @@ class Decorator(object):
 			self.format_selector = FormatSelector()
 
 	@staticmethod
+	def _is_graph(obj):
+		return isinstance(obj, Graph)
+
+	@staticmethod
 	def _get_graph(output):
 		""" Given a WSGI response, check for a rdflib Graph """
-		if hasattr(output, 'serialize'):	# single graph object
+		if Decorator._is_graph(output):	# single graph object
 			return output
 
 	def output(self, output, accepts, set_http_code, set_content_type):
