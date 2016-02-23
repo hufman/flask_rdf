@@ -3,3 +3,4 @@ WebTest==2.0.20
 bottle
 Flask
 rdflib
+coverage

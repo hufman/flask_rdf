@@ -4,3 +4,7 @@ __pycache__
 flask_rdf.egg-info
 dist
 build
+.tox
+.coverage
+nosetests.xml
+coverage.xml
