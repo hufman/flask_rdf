@@ -51,6 +51,12 @@ class TestFormat(unittest.TestCase):
 		(mimetype, format) = self.format.decide('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
 		self.assertEqual('application/rdf+xml', mimetype)
 		self.assertEqual('xml', format)
+		# try custom wildcard
+		self.format.wildcard_mimetype = 'text/custom'
+		self.format.add_format('text/custom', 'turtle')
+		(mimetype, format) = self.format.decide('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
+		self.assertEqual('text/custom', mimetype)
+		self.assertEqual('turtle', format)
 
 	def test_custom(self):
 		(mimetype, format) = self.format.decide('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')

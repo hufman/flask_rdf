@@ -3,6 +3,7 @@ import mimeparse
 
 DEFAULT_MIMETYPE = 'application/rdf+xml'	# default mimetype to return
 WILDCARD = 'INVALID/MATCH'	# matches Accept:*/*
+WILDCARD_MIMETYPE = 'application/rdf+xml'	# mimetype for wildcard
 
 
 # What formats we support for serialization
@@ -35,6 +36,8 @@ class FormatSelector(object):
 		self.ctxless_mimetypes = []
 		# the default mimetype to use
 		self.default_mimetype = None
+		# the wildcard mimetype to use
+		self.wildcard_mimetype = None
 
 	def add_format(self, mimetype, format, requires_context=False):
 		""" Registers a new format to be used in a graph's serialize call
@@ -52,7 +55,16 @@ class FormatSelector(object):
 		mimetype = self.default_mimetype
 		if mimetype is None:	# class inherits from module default
 			mimetype = DEFAULT_MIMETYPE
-		if mimetype is None:	# module defaults to None
+		if mimetype is None:	# module is set to None?
+			mimetype = 'application/rdf+xml'
+		return mimetype
+
+	def get_wildcard_mimetype(self):
+		""" Returns the mimetype if the client sends */* """
+		mimetype = self.wildcard_mimetype
+		if mimetype is None:	# class inherits from module default
+			mimetype = WILDCARD_MIMETYPE
+		if mimetype is None:	# module is set to None?
 			mimetype = 'application/rdf+xml'
 		return mimetype
 
@@ -80,7 +92,7 @@ class FormatSelector(object):
 
 		# if browser sent */*
 		if mimetype == WILDCARD:
-			mimetype = self.get_default_mimetype()
+			mimetype = self.get_wildcard_mimetype()
 
 		return mimetype
 
