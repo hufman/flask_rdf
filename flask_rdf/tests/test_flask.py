@@ -151,7 +151,7 @@ class TestFlaskInternally(unittest.TestCase):
 		test_str = 'This is a test string'
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		response = output(test_str, accepts)
-		self.assertEqual(test_str.encode('utf-8'), response.get_data())
+		self.assertEqual(test_str, response)
 
 	def test_unicode(self):
 		mygraph = graph
