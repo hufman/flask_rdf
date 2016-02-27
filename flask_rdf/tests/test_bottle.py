@@ -45,6 +45,9 @@ def ctx():
 @returns_rdf
 def text():
 	return 'This is a test string'
+@application.route('/manual')
+def manual():
+	return output(graph, bottle.request.headers.get('Accept', ''))
 @application.route('/unicode')
 @returns_rdf
 def unicode():
@@ -62,6 +65,20 @@ class TestCases(unittest.TestCase):
 		turtle = graph.serialize(format='turtle')
 		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
 		response = app.get('/test', headers=headers)
+		self.assertEqual(turtle, response.body)
+		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual(200, response.status_int)
+
+	def test_format_unacceptable(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/html;q=0.9'}
+		response = app.get('/test', headers=headers, status=406)
+		self.assertEqual(406, response.status_int)
+
+	def test_format_manual(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
+		response = app.get('/manual', headers=headers)
 		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
