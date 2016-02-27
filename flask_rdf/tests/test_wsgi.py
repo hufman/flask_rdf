@@ -52,6 +52,19 @@ def application(environ, start_response):
 app = webtest.TestApp(application)
 
 class TestCases(unittest.TestCase):
+	def test_output_simple(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
+		response = {'content-type': '', 'status': '200 OK', 'data': []}
+		def set_http_code(arg):
+			response['status'] = arg
+		def set_content_type(arg):
+			response['content-type'] = arg
+		response['data'] = output(graph, headers['Accept'], set_http_code, set_content_type)
+		self.assertEqual(turtle, response['data'][0])
+		self.assertEqual('text/turtle; charset=utf-8', response['content-type'])
+		self.assertEqual(200, int(response['status'].split()[0]))
+
 	def test_format_simple(self):
 		turtle = graph.serialize(format='turtle')
 		headers = {'Accept': 'text/n3;q=0.5, text/turtle;q=0.9'}
@@ -59,6 +72,12 @@ class TestCases(unittest.TestCase):
 		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
+
+	def test_format_unacceptable(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/html;q=0.9'}
+		response = app.get('/test', headers=headers, status=406)
+		self.assertEqual(406, response.status_int)
 
 	def test_format_quads_context(self):
 		g = ctx_graph
@@ -137,3 +156,20 @@ class TestCases(unittest.TestCase):
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual('yes', response.headers['CustomHeader'])
 		self.assertEqual(202, response.status_int)
+
+	def test_decorators(self):
+		turtle = graph.serialize(format='turtle')
+		xml = graph.serialize(format='xml')
+		view = graph
+		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
+		decorator = Decorator()
+		response = decorator.output(view, accepts, lambda *args: None, lambda *args: None)
+		self.assertEqual(turtle, response[0])
+		# use the decorator
+		decoratee = lambda *args: view
+		decorated = decorator.decorate(decoratee)
+		response = decorated({}, lambda *args: None)
+		self.assertEqual(xml, response[0])
+		decorated = decorator(decoratee)
+		response = decorated({}, lambda *args: None)
+		self.assertEqual(xml, response[0])

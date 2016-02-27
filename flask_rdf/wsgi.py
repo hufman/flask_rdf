@@ -1,13 +1,7 @@
 from __future__ import absolute_import
 from .format import decide, FormatSelector
 from rdflib.graph import Graph
-try:
-	from io import BytesIO as StringIO
-except:		# python 2
-	try:
-		from cStringIO import StringIO
-	except:
-		from StringIO import StringIO
+from six import BytesIO
 
 
 class Decorator(object):
@@ -39,7 +33,7 @@ class Decorator(object):
 			# requested content couldn't find anything
 			if output_mimetype is None:
 				set_http_code("406 Not Acceptable")
-				return ['406 Not Acceptable']
+				return ['406 Not Acceptable'.encode('utf-8')]
 			# explicitly mark text mimetypes as utf-8
 			if 'text' in output_mimetype:
 				output_mimetype = output_mimetype + '; charset=utf-8'
@@ -64,7 +58,7 @@ class Decorator(object):
 			app_response = {}
 			app_response['status'] = "200 OK"
 			app_response['headers'] = []
-			app_response['written'] = StringIO()
+			app_response['written'] = BytesIO()
 			def custom_start_response(status, headers, *args, **kwargs):
 				app_response['status'] = status
 				app_response['headers'] = headers
@@ -80,7 +74,7 @@ class Decorator(object):
 				app_response['headers'] = [(h,v) for (h,v) in app_response['headers'] if h.lower() != 'content-type']
 				app_response['headers'].append(('Content-Type', content_type))
 			# do the serialization
-			accept = environ['HTTP_ACCEPT']
+			accept = environ.get('HTTP_ACCEPT', '')
 			new_return = self.output(returned, accept, set_http_code, set_content_type)
 
 			# pass on the result to the parent WSGI server
@@ -102,7 +96,7 @@ class Decorator(object):
 _implicit_instance = Decorator()
 
 
-def output(output, accepts):
-	return _implicit_instance.output(output, accepts)
+def output(output, accepts, set_http_code, set_content_type):
+	return _implicit_instance.output(output, accepts, set_http_code, set_content_type)
 def returns_rdf(view):
 	return _implicit_instance.decorate(view)
