@@ -22,7 +22,7 @@ can be used at a high level to determine whether the client even wants RDF.
 API
 ---
 
--  ``add_format``, ``format.add_format``
+-  ``add_format(mimetype, serialize_format)``, ``format.add_format(mimetype, serialize_format)``
 
    Registers a new format to be recognized for content negotiation. It
    accepts arguments ``mimetype``, ``serialize_format``, and is used to add any
@@ -31,7 +31,7 @@ API
    A third argument, requires_context, will restrict this serializer to
    only be used by graphs that are ``context_aware``.
 
--  ``format.decide``
+-  ``format.decide(accept, context_aware=False)``
 
    Given an Accept header, return a (``mimetype``, ``format``) tuple that would
    best satisfy the client's request.
@@ -40,19 +40,19 @@ API
    A second argument, context_aware, may be used to allow formats
    that require a ``context_aware`` graph.
 
-- ``FormatSelector``, ``format.FormatSelector``
+- ``FormatSelector()``, ``format.FormatSelector()``
 
    Class to decide serialization formats. It supports using the module-level
    formats added with ``format.add_format``, but it has its own list of
    formats added with ``FormatSelector().add_format``.
 
-- ``wants_rdf``, ``format.wants_rdf``, ``FormatSelector.wants_rdf``
+- ``wants_rdf(accept)``, ``format.wants_rdf(accept)``, ``FormatSelector.wants_rdf(accept)``
 
    Returns whether the client's Accept header indicates that the client
    is prepared to receive RDF data. This can be used in the view to
    return a pretty HTML page for browsers, for example.
 
--  ``flask_rdf``, ``flask.returns_rdf``
+-  ``@flask_rdf``, ``@flask.returns_rdf``
 
    Decorator for a Flask view function to use the Flask request's Accept
    header. It handles converting an rdflib Graph object to the proper
@@ -66,7 +66,7 @@ API
    The Decorator object itself can be used as the decorator, and it also
    supports the methods ``.output`` and ``.decorate``.
 
--  ``bottle_rdf``, ``bottle.returns_rdf``
+-  ``@bottle_rdf``, ``@bottle.returns_rdf``
 
    Decorator for a Bottle view function to use the Bottle request's Accept
    header. It handles converting an rdflib Graph object to the proper
@@ -80,7 +80,7 @@ API
    The Decorator object itself can be used as the decorator, and it also
    supports the methods ``.output`` and ``.decorate``.
 
--  ``wsgi_rdf``, ``wsgi.returns_rdf``
+-  ``@wsgi_rdf``, ``@wsgi.returns_rdf``
 
    Decorator for a WSGI app function to use the WSGI request's Accept
    header. It handles converting an rdflib Graph object to the proper
