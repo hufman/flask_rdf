@@ -2,7 +2,8 @@ import unittest
 from rdflib import BNode, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib.namespace import RDF, RDFS, FOAF, XSD
 from flask_rdf.flask import output
-from flask_rdf.format import add_format, decide, FormatSelector
+import flask_rdf.format
+from flask_rdf.format import add_format, decide, FormatSelector, wants_rdf
 
 
 class TestFormat(unittest.TestCase):
@@ -35,12 +36,32 @@ class TestFormat(unittest.TestCase):
 		self.assertEqual('n3', moduleformat)
 
 	def test_default(self):
+		# test that it uses the defaults
 		(mimetype, format) = self.format.decide(None)
 		self.assertEqual('application/rdf+xml', mimetype)
 		self.assertEqual('xml', format)
 		(mimetype, format) = self.format.decide('')
 		self.assertEqual('application/rdf+xml', mimetype)
 		self.assertEqual('xml', format)
+		# try changing defaults
+		# instance-level
+		self.format.default_mimetype = 'application/n-triples'
+		(mimetype, format) = self.format.decide('')
+		self.assertEqual('application/n-triples', mimetype)
+		self.assertEqual('nt', format)
+		# module-level
+		self.format.default_mimetype = None
+		flask_rdf.format.DEFAULT_MIMETYPE = 'text/turtle'
+		(mimetype, format) = self.format.decide('')
+		self.assertEqual('text/turtle', mimetype)
+		self.assertEqual('turtle', format)
+		# super failback
+		flask_rdf.format.DEFAULT_MIMETYPE = None
+		(mimetype, format) = self.format.decide('')
+		self.assertEqual('application/rdf+xml', mimetype)
+		self.assertEqual('xml', format)
+		# reset for the rest of the tests
+		flask_rdf.format.DEFAULT_MIMETYPE = 'application/rdf+xml'
 
 	def test_incorrect(self):
 		(mimetype, format) = self.format.decide('text/strangerdf')
@@ -57,6 +78,19 @@ class TestFormat(unittest.TestCase):
 		(mimetype, format) = self.format.decide('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
 		self.assertEqual('text/custom', mimetype)
 		self.assertEqual('turtle', format)
+		# module-level wildcard
+		self.format.wildcard_mimetype = None
+		flask_rdf.format.WILDCARD_MIMETYPE = 'text/turtle'
+		(mimetype, format) = self.format.decide('text/html;q=0.9,*/*;q=0.8')
+		self.assertEqual('text/turtle', mimetype)
+		self.assertEqual('turtle', format)
+		# super failback
+		flask_rdf.format.WILDCARD_MIMETYPE = None
+		(mimetype, format) = self.format.decide('text/html;q=0.9,*/*;q=0.8')
+		self.assertEqual('application/rdf+xml', mimetype)
+		self.assertEqual('xml', format)
+		# reset
+		flask_rdf.format.WILDCARD_MIMETYPE = 'application/rdf+xml'
 
 	def test_custom(self):
 		(mimetype, format) = self.format.decide('text/turtle;q=0.5, test/format;q=1.0, text/n3;q=0.9')
@@ -105,3 +139,10 @@ class TestFormat(unittest.TestCase):
 		self.assertFalse(self.format.wants_rdf('text/html'))
 		self.assertFalse(self.format.wants_rdf('text/html, */*;q=0.2'))
 		self.assertFalse(self.format.wants_rdf('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'))
+
+		self.assertTrue(wants_rdf('text/turtle'))
+		self.assertTrue(wants_rdf('application/rdf+xml'))
+		self.assertTrue(wants_rdf('text/html, application/rdf+xml'))
+		self.assertFalse(wants_rdf('text/html'))
+		self.assertFalse(wants_rdf('text/html, */*;q=0.2'))
+		self.assertFalse(wants_rdf('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'))
