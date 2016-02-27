@@ -153,6 +153,15 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(test_str, accepts)
 		self.assertEqual(test_str, response)
 
+	def test_weird_graph(self):
+		# If an object somehow sneaks past get_graph/is_graph
+		# test that replace_graph doesn't crash about it
+		decorator = Decorator()
+		test_str = 'This is a test string'
+		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
+		response = decorator.replace_graph(test_str, 'wrong')
+		self.assertEqual(test_str, response)
+
 	def test_unicode(self):
 		mygraph = graph
 		mygraph.add((BNode(), FOAF.name, Literal('\u2603')))
@@ -184,6 +193,12 @@ class TestFlaskApp(unittest.TestCase):
 		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual(200, response.status_int)
+
+	def test_format_unacceptable(self):
+		turtle = graph.serialize(format='turtle')
+		headers = {'Accept': 'text/html;q=0.9'}
+		response = app.get('/test', headers=headers, status=406)
+		self.assertEqual(406, response.status_int)
 
 	def test_format_quads_context(self):
 		g = ctx_graph
