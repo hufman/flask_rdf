@@ -7,7 +7,6 @@ class Decorator(ViewDecorator):
 	@classmethod
 	def get_graph(cls, response):
 		""" Given a Flask response, find the rdflib Graph """
-		print(response,)
 		if cls.is_graph(response):	# single graph object
 			return response
 

@@ -177,12 +177,23 @@ class TestFlaskInternally(unittest.TestCase):
 
 	def test_decorators(self):
 		turtle = graph.serialize(format='turtle')
+		xml = graph.serialize(format='xml')
 		view = graph
 		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
 		decorator = Decorator()
 		response = decorator.output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		# use the decorator
+		decoratee = lambda *args: view
+		decorated = decorator.decorate(decoratee)
+		response = decorated()
+		self.assertEqual(xml, response.get_data())
+		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+		decorated = decorator(decoratee)
+		response = decorated()
+		self.assertEqual(xml, response.get_data())
+		self.assertEqual('application/rdf+xml', response.headers['content-type'])
 
 
 class TestFlaskApp(unittest.TestCase):

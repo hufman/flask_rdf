@@ -153,3 +153,20 @@ class TestCases(unittest.TestCase):
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
 		self.assertEqual('yes', response.headers['CustomHeader'])
 		self.assertEqual(202, response.status_int)
+
+	def test_decorators(self):
+		turtle = graph.serialize(format='turtle')
+		xml = graph.serialize(format='xml')
+		view = graph
+		accepts = 'text/n3;q=0.5, text/turtle;q=0.9'
+		decorator = Decorator()
+		response = decorator.output(view, accepts)
+		self.assertEqual(turtle, response)
+		# use the decorator
+		decoratee = lambda *args: view
+		decorated = decorator.decorate(decoratee)
+		response = decorated()
+		self.assertEqual(turtle, response)
+		decorated = decorator(decoratee)
+		response = decorated()
+		self.assertEqual(turtle, response)
