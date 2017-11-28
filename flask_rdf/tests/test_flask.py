@@ -70,6 +70,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_code)
 
 	def test_format_tuple(self):
@@ -79,6 +80,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(202, response.status_code)
 
 	def test_format_quads_nocontext(self):
@@ -96,6 +98,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(quads, response.get_data())
 		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(202, response.status_code)
 
 	def test_format_quads_lowprio(self):
@@ -107,6 +110,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(quads, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(202, response.status_code)
 
 	def test_format_quads_highprio(self):
@@ -118,6 +122,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(quads, response.get_data())
 		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(202, response.status_code)
 
 	def test_format_quads_unavailable(self):
@@ -129,6 +134,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(quads, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(202, response.status_code)
 
 	def test_format_headers(self):
@@ -138,6 +144,7 @@ class TestFlaskInternally(unittest.TestCase):
 		response = output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual('12', response.headers['x-custom'])
 		self.assertEqual(203, response.status_code)
 
@@ -146,6 +153,7 @@ class TestFlaskInternally(unittest.TestCase):
 		accepts = ''
 		response = output(graph, accepts)
 		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 
 	def test_text(self):
 		test_str = 'This is a test string'
@@ -172,6 +180,7 @@ class TestFlaskInternally(unittest.TestCase):
 		datastr = data.decode('utf-8')
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_code)
 		self.assertTrue('\u2603' in datastr)
 
@@ -184,16 +193,19 @@ class TestFlaskInternally(unittest.TestCase):
 		response = decorator.output(view, accepts)
 		self.assertEqual(turtle, response.get_data())
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		# use the decorator
 		decoratee = lambda *args: view
 		decorated = decorator.decorate(decoratee)
 		response = decorated()
 		self.assertEqual(xml, response.get_data())
 		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		decorated = decorator(decoratee)
 		response = decorated()
 		self.assertEqual(xml, response.get_data())
 		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 
 
 class TestFlaskApp(unittest.TestCase):
@@ -203,6 +215,7 @@ class TestFlaskApp(unittest.TestCase):
 		response = app.get('/test', headers=headers)
 		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_int)
 
 	def test_format_unacceptable(self):
@@ -219,6 +232,7 @@ class TestFlaskApp(unittest.TestCase):
 		response = app.get('/ctx', headers=headers)
 		self.assertEqual(quads, response.body)
 		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_int)
 
 	def test_format_quads_lowprio(self):
@@ -229,6 +243,7 @@ class TestFlaskApp(unittest.TestCase):
 		response = app.get('/ctx', headers=headers)
 		self.assertEqual(quads, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_int)
 
 	def test_format_quads_highprio(self):
@@ -239,6 +254,7 @@ class TestFlaskApp(unittest.TestCase):
 		response = app.get('/ctx', headers=headers)
 		self.assertEqual(quads, response.body)
 		self.assertEqual('application/n-quads', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_int)
 
 	def test_format_quads_unavailable(self):
@@ -249,6 +265,7 @@ class TestFlaskApp(unittest.TestCase):
 		response = app.get('/test', headers=headers)
 		self.assertEqual(quads, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_int)
 
 	def test_empty_format_headers(self):
@@ -256,6 +273,7 @@ class TestFlaskApp(unittest.TestCase):
 		headers = {'Accept': ''}
 		response = app.get('/test', headers=headers)
 		self.assertEqual('application/rdf+xml', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 
 	def test_text(self):
 		test_str = 'This is a test string'
@@ -270,6 +288,7 @@ class TestFlaskApp(unittest.TestCase):
 		response = app.get('/unicode', headers=headers)
 		self.assertEqual(turtle, response.body)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual(200, response.status_int)
 		self.assertTrue('\u2603' in response.body.decode('utf-8'))
 
@@ -278,6 +297,7 @@ class TestFlaskApp(unittest.TestCase):
 		headers = {'Accept': 'text/turtle'}
 		response = app.get('/202', headers=headers)
 		self.assertEqual('text/turtle; charset=utf-8', response.headers['content-type'])
+		self.assertEqual('Accept', response.headers['vary'])
 		self.assertEqual('yes', response.headers['CustomHeader'])
 		self.assertEqual(202, response.status_int)
 		self.assertEqual(turtle, response.body)

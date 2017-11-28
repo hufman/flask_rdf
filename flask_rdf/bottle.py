@@ -8,6 +8,7 @@ class Decorator(ViewDecorator):
 	def make_new_response(cls, old_response, mimetype, serialized):
 		import bottle
 		bottle.response.content_type = mimetype
+		bottle.response.set_header('Vary', 'Accept')
 		return serialized
 
 	@classmethod
