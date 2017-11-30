@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from .format import decide, FormatSelector
 from rdflib.graph import Graph
 from six import BytesIO
+import itertools
 
 
 class Decorator(object):
@@ -70,12 +71,23 @@ class Decorator(object):
 			# callbacks from the serialization
 			def set_http_code(status):
 				app_response['status'] = str(status)
+			def set_header(header, value):
+				app_response['headers'] = [(h,v) for (h,v) in app_response['headers'] if h.lower() != header.lower()]
+				app_response['headers'].append((header, value))
 			def set_content_type(content_type):
-				app_response['headers'] = [(h,v) for (h,v) in app_response['headers'] if h.lower() != 'content-type']
-				app_response['headers'].append(('Content-Type', content_type))
+				set_header('Content-Type', content_type)
+
 			# do the serialization
 			accept = environ.get('HTTP_ACCEPT', '')
 			new_return = self.output(returned, accept, set_http_code, set_content_type)
+
+			# set the Vary header
+			vary_headers = (v for (h,v) in app_response['headers'] if h.lower() == 'vary')
+			vary_elements = list(itertools.chain(*[v.split(',') for v in vary_headers]))
+			vary_elements = list(set([v.strip() for v in vary_elements]))
+			if '*' not in vary_elements and 'accept' not in (v.lower() for v in vary_elements):
+				vary_elements.append('Accept')
+				set_header('Vary', ', '.join(vary_elements))
 
 			# pass on the result to the parent WSGI server
 			parent_writer = start_response(app_response['status'],
