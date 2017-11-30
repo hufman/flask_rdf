@@ -33,6 +33,7 @@ class Decorator(ViewDecorator):
 		final_output = cls.replace_graph(old_response, serialized)
 		response = make_response(final_output)
 		response.headers['Content-Type'] = mimetype
+		response.headers['Vary'] = 'Accept'
 		return response
 
 	@classmethod
