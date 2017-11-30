@@ -11,7 +11,7 @@ test_requirements = open('requirements.test.txt').read().split('\n')
 long_description = open('README.rst').read()
 
 setup(name='flask_rdf',
-      version='0.2.0',
+      version='0.2.1',
       description='Flask decorator to output RDF using content negotiation',
       author='Walter Huf',
       author_email='hufman@gmail.com',
