@@ -11,7 +11,6 @@ def make_graph():
 	person = URIRef('http://example.com/#person')
 	graph.add((person, RDF.type, FOAF.Person))
 	graph.add((person, FOAF.age, Literal(15, datatype=XSD.integer)))
-	graph.add((person, FOAF.birthday, Literal('2002-01-04', datatype=XSD.date)))
 	return graph
 graph = make_graph()
 
@@ -21,7 +20,6 @@ def make_ctx_graph():
 	person = URIRef('http://example.com/#person')
 	graph.add((person, RDF.type, FOAF.Person))
 	graph.add((person, FOAF.age, Literal(15, datatype=XSD.integer)))
-	graph.add((person, FOAF.birthday, Literal('2002-01-04', datatype=XSD.date)))
 	return graph
 ctx_graph = make_ctx_graph()
 
